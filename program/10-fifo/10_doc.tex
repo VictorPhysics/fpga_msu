@@ -44,6 +44,26 @@
 
 \lstinputlisting[caption=Testing circuit for a FIFO buffer, label=fifo_testing]{fifo_testing.vhd}
 
+\section{FIFO IP}
+
+\noindent 
+\textbf{Шаг 1: открываем проект} \\ 
+\\
+Считаю что данный шаг не стоит описывать подробно, так как вы неоднократно выполняли данную процедуру.\\
+\\
+\textbf{Шаг 2: Настройка генератора FIFO}
+\begin{enumerate} 
+\item Выберите IP Catalog во вкладке  Flow Navigator. 
+\itemНажмите IP Catalog и он отобразится в новой вкладке.
+\itemНажмите папку Memories \& Storage Element, затем FIFOs. Выберите FIFO Generator. Альтернативный способ написать в строке поиска fifo.
+\itemЩелкните правой кнопкой мыши и выбирете Customize IP, или дважды щелкните на FIFO Generator. Откроется окно настройки генератора FIFO.
+\item Выберите тип интерфейса Native.
+\item Установить режим чтения Standart FIFO.
+\itemЗадайте Write Width, Write Depth, Read Width.
+\itemПерейдите во вкладку Status Flags, в разделе Read Port Handshaking установите галочку в Valid Flag.
+\itemУбедитесь, что информация верна, как показано, и нажмите «ОК».
+\end{enumerate}
+
 \section{Интерфейс FIFO}
 
 Ядро FIFO (first-in first-out - первый вошел, первый вышел) генератора может использоваться в любом приложении, требующем упорядоченного
