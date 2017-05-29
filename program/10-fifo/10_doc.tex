@@ -144,6 +144,45 @@
 \item В меню боковой панели текстового редактора нажмите кнопку Save File, чтобы сохранить изменения в файле .vhd.
 \end{enumerate}
 
+\section{Усредняющее FiFO}
+\begin{figure}[h]
+\centering
+\includegraphics[width=1.1\textwidth]{structure}
+\caption{Структурная схема}
+\label{struct}
+\end{figure}
+
+У нас есть сигнал data\_in и data\_valid. Мы подаем сначала 16 чисел в frame0 вместе с data\_valid, а затем подаем еще 16 чисел в frame1, это уже другие числа. Усредняющее FIFO должно нам выдать сумму frame0 и frame1. Усредненение - это сумма поделить на количество. Мы упростим задачу, нам не нужно будет делить. Подаем 18 битные числа на входе и получаем 18 битные числа на выходе. Они просто складываются, а элементов будет n\_average. Усредненый сигнал 
+ся, когда ready равен 1. Этот сигнал символизирует, что некоторый данный приемник готов к получению данных. Сигнал data\_valid сигнализирует, что получаются верные данные, а ready сигнал готовности принимать данные.
+Идея в том, что наше усредняющее FIFO ждет, когда приемник готов их принимать данные и только после этого выдает свой data\_valid вместе с данными.
+
+У вас может возникнуть вопрос: а что будет если сумма выйдет за пределы 18 бит? Строго говоря, верный вопрос. Пусть будет переполнение, в данном случае это упрощенная задача.
+
+Данный вопрос можно решить следующим образом, делаются не 18 битные числа, а 12 битные, а на выходе идут 18 битные. В таком случае максимальное количество усреднений, оно же максимальное количество сложений. В таком случае мы можем сделать 64=$2^6$ сложения, иначе возможно переполнение (overflow)
+
+Конечный автомат по очереди подключает на первой иттерации, в состоянии waiting, data\_in, data\_valid\_in и полность заполняет FIFO. Затем ждет, когда будет новый data\_valid и подключает к входу rd\_anable, т.е. запрашивает данные из FIFO. При этом data\_in и data\_valid\_in он задерживает на один такт, т.е. пропускает через регистр, чтобы скомпенсировать задержку в один цикл. И на вход FIFO уже поступает сумма первого числа, которое поступило из FIFO и первого числа, которое поступило со входа.
+
+И на последнем этапе, 3-е состояние unloading, он выжидает сигнал ready, после чего выдвет на data\_out и data\_valid\_out сигнал суммы. 
+
+Как только data\_valid равен единичке, записываем в счетчик количество усреднений значений n\_aver, а затем уменьшаем его на единицу с каждым новым Frame`ом.
+
+Регистры, которые обязательно потребуются: регистр, который считает числа до 16 внутри Frame, регистр который считает Frame`мы, регистр, который задерживает data\_in и data\_valid\_in, чтобы скомпенсировать задержку в один такт, которая FIFO, регистр data\_out и data\_valid\_out.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=1.1\textwidth]{simulation}
+\caption{Симуляция}
+\label{simulation}
+\end{figure}
+
+\begin{center}
+\textbf{Ниже приведен код и тестбенч усредняющего FIFO.}
+\end{center}
+
+\lstinputlisting[caption= Код усредняющего FIFO, label=prog_nyan]{nyan.vhd}
+
+\lstinputlisting[caption=Тестбенч усредняющего FIFO, label=prog_nyantb]{nyantb.vhd}
+
 \section{Интерфейс FIFO}
 
 Ядро FIFO (first-in first-out - первый вошел, первый вышел) генератора может использоваться в любом приложении, требующем упорядоченного
@@ -156,119 +195,3 @@
 IP как завершенное решение с уже реализованной логикой управления, включая управление указателями
 чтения и записи и генерацию флагов состояния.
 
-
-\section{Оформление}
-
-Очень хорошее и краткое введение в LaTeX можно найти в книге Столярова (\href{url}{http://www.stolyarov.info/books/latex3days/}).
-
-\section{Заголовок 1-го уровня} 
-\subsection{Заголовок 2-го уровня}
-\subsubsection{Заголовок 3-го уровня}
-
-Текст. Текст. Текст. \emph{Текст курсивом.} Поставить тире~-- вот так. Текст в "<кавычках">.
-
-Чтобы сделать новый абзац, нужно пропустить строку.
-
-Пример кода:
-
-\begin{Code}
-\begin{lstlisting}
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-
-entity Latch is
-    port ( C : in  STD_LOGIC;
-           D : in  STD_LOGIC;
-           Q : out STD_LOGIC);
-end Latch;
-
-architecture Behavioral of Latch is
-    signal q_tmp : std_logic := '0';
-begin
-    latch_process: process (C, D)
-    begin
-        if (C = '1') then
-            q_tmp <= D;
-        end if;
-    end process;
-    Q <= q_tmp;
-end Behavioral;
-\end{lstlisting}
-\end{Code}
-
-Пример кода в строке: \lstinline?С = 1?. Или вот так: \lstinline?S(7 downto 1) <= S(6 downto 0);?. Здесь код помещен между знаками вопроса.
-
-Пример нумерованного списка:
-
-\begin{enumerate}
-\item Пункт 1.
-\item Пункт 2.
-\item Пункт 3.
-\end{enumerate}
-
-Пример ненумерованного списка:
-
-\begin{itemize}
-\item Пункт 1.
-\item Пункт 2.
-\item Пункт 3.
-\end{itemize}
-
-Вот так оформляется таблица с тремя колонками:
-
-\begin{table}[h]
-\centering
-\begin{tabular}{|c|c|c|}
-\hline
-input               & \multicolumn{2}{c|}{output} \\ \hline
-r                   & code        & active         \\ \hline
-\texttt{1{-}{-}{-}} & \texttt{11} & \texttt{1}     \\
-\texttt{01{-}{-}}   & \texttt{10} & \texttt{1}     \\
-\texttt{001-}       & \texttt{01} & \texttt{1}     \\
-\texttt{0001}       & \texttt{00} & \texttt{1}     \\
-\texttt{0000}       & \texttt{00} & \texttt{0}     \\
-\hline
-\end{tabular}
-\end{table}
-
-Рисование осуществляется с помощью пакета 'TikZ':
-
-\begin{figure}[ht]
-\centering
-\begin{tikzpicture}[>=latex']
-\tikzstyle{arith_op} = [draw, fill=blue!20, circle, minimum size=2em]
-
-% inputs
-\node at (0,4) (input_a) {\texttt{a}};
-\node at (0,3) (input_b) {\texttt{b}};
-\node at (0,1) (input_c) {\texttt{c}};
-\node at (0,0) (input_1) {\texttt{1}};
-
-% operations
-\node[arith_op] at (1,3) (block_plus_1) {$+$};
-\node[arith_op] at (1,1) (block_plus_2) {$+$};
-\node[arith_op] at (2,2) (block_minus) {$-$};
-
-% connections
-\draw[->] (input_a) -- (1,4) -- node {} (block_plus_1);
-\draw[->] (input_b) -- node {} (block_plus_1);
-\draw[->] (input_c) -- node {} (block_plus_2);
-\draw[->] (input_1) -- (1,0) -- node {} (block_plus_2);
-\draw[->] (block_plus_1) -- (2,3) -- node {} (block_minus);
-\draw[->] (block_plus_2) -- (2,1) -- node {} (block_minus);
-\draw[->] (block_minus) -- (3,2);
-\end{tikzpicture}
-\caption{Оптимизированная комбинационная схема.}
-\label{label_fig_1}
-\end{figure}
-
-Ссылка на рисунок делается по \emph{label} вот так: \ref{label_fig_1}.
-
-Вставка скриншотов программ (PNG) возможна следующим образом (файл изображения находится в папке с кодом):
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.6\textwidth]{test_fig}
-\caption{Некий рисунок}
-\label{test_fig_label}
-\end{figure}
