@@ -1,5 +1,5 @@
 library ieee;
-use ieee.std_logic_vector_1164.all;
+use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 entity fifo is
     generic (
@@ -23,13 +23,12 @@ architecture arch of fifo is
         std_logic_vector (W-1 downto 0);
     signal r_ptr_reg, r_ptr_next, r_ptr_succ:
         std_logic_vector (W-1 downto 0);
-    signal fuul_reg, empty_reg, full_next, empty_next:
+    signal full_reg, empty_reg, full_next, empty_next:
             std_logic;
     signal wr_op: std_logic_vector (1 downto 0);
     signal wr_en: std_logic;
 begin 
   -- register file
-  
   
     process (clk, reset)
     begin
@@ -106,6 +105,3 @@ begin
     full <= full_reg;
     empty <= empty_reg;
 end arch;
-
-
-    
